@@ -5310,7 +5310,7 @@ L.CircleMarker = L.Circle.extend({
 	projectLatlngs: function () {
 		this._point = this._map.latLngToLayerPoint(this._latlng);
 	},
-	
+
 	_updateStyle : function () {
 		L.Circle.prototype._updateStyle.call(this);
 		this.setRadius(this.options.radius);
@@ -5615,6 +5615,14 @@ L.DomEvent = {
 
 				obj.addEventListener(newType, handler, false);
 
+			} else if (type === 'click' && L.Browser.android) {
+				originalHandler = handler;
+				handler = function (e) {
+					return L.DomEvent._filterClick(e, originalHandler);
+				};
+
+				obj.addEventListener(type, handler, false);
+
 			} else {
 				obj.addEventListener(type, handler, false);
 			}
@@ -5753,6 +5761,23 @@ L.DomEvent = {
 			}
 		}
 		return e;
+	},
+
+	// this solves a bug in Android WebView where a single touch triggers two click events.
+	_filterClick: function (e, handler) {
+		var elapsed = L.DomEvent._lastClick && (e.timeStamp - L.DomEvent._lastClick);
+
+		// are they closer together than 400ms yet more than 100ms?
+		// Android typically triggers them ~300ms apart while multiple listeners
+		// on the same event should be triggered far faster.
+
+		if (elapsed && elapsed > 100 && elapsed < 400) {
+			L.DomEvent.stop(e);
+			return;
+		}
+		L.DomEvent._lastClick = e.timeStamp;
+
+		return handler(e);
 	}
 };
 
