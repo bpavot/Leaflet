@@ -4584,7 +4584,7 @@ L.Map.include((L.Path.SVG && !window.L_PREFER_CANVAS) || !L.Browser.canvas ? {} 
 
 			this._panes.overlayPane.appendChild(root);
 
-			if (this.options.zoomAnimation) {
+			if (this.options.zoomAnimation && L.Browser.any3d) {
 				this._pathRoot.className = 'leaflet-zoom-animated';
 				this.on('zoomanim', this._animatePathZoom);
 				this.on('zoomend', this._endPathZoom);
@@ -5414,6 +5414,17 @@ L.Circle.include(!L.Path.CANVAS ? {} : {
 		    w2 = this.options.stroke ? this.options.weight / 2 : 0;
 
 		return (p.distanceTo(center) <= this._radius + w2);
+	}
+});
+
+
+/*
+ * CircleMarker canvas specific drawing parts.
+ */
+
+L.CircleMarker.include(!L.Path.CANVAS ? {} : {
+	_updateStyle: function () {
+		L.Path.prototype._updateStyle.call(this);
 	}
 });
 
